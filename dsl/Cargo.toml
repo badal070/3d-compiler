@@ -1,0 +1,36 @@
+[package]
+name = "dsl-compiler"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "A strict, declarative scene description language compiler"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/yourusername/dsl-compiler"
+keywords = ["compiler", "dsl", "parser", "validation", "scene-description"]
+categories = ["compilers", "parsing", "simulation"]
+
+[lib]
+name = "dsl_compiler"
+path = "lib.rs"
+
+[dependencies]
+serde_json = "1.0"
+
+[dev-dependencies]
+# For testing
+criterion = "0.5"
+
+[[bench]]
+name = "compilation_bench"
+harness = false
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+
+[profile.dev]
+opt-level = 0
+
+[profile.test]
+opt-level = 1
