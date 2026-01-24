@@ -1,0 +1,162 @@
+//! Renderer Bridge + Visualization Adapter
+//!
+//! This module translates runtime state into render instructions.
+//! It does NOT interpret, optimize, or make semantic decisions.
+//!
+//! Design law: Renderer may fail silently, but must never invent behavior.
+
+pub mod adapter;
+pub mod backend;
+pub mod bridge;
+pub mod error;
+pub mod interpolation;
+pub mod scene_map;
+pub mod sync;
+pub mod visibility;
+
+pub use bridge::RendererBridge;
+pub use error::{RenderError, RenderResult};
+
+/// Renderer configuration
+#[derive(Debug, Clone)]
+pub struct RendererConfig {
+    /// Target frames per second
+    pub target_fps: u32,
+    /// Enable frame interpolation
+    pub interpolate: bool,
+    /// Enable culling optimizations
+    pub enable_culling: bool,
+    /// Maximum number of objects before warnings
+    pub max_objects: usize,
+}
+
+impl Default for RendererConfig {
+    fn default() -> Self {
+        Self {
+            target_fps: 60,
+            interpolate: true,
+            enable_culling: true,
+            max_objects: 10000,
+        }
+    }
+}
+
+/// Public interface for the renderer subsystem
+pub struct Renderer {
+    bridge: RendererBridge,
+    config: RendererConfig,
+}
+
+impl Renderer {
+    /// Create a new renderer with the specified backend
+    pub fn new(backend: Box<dyn backend::RenderBackend>, config: RendererConfig) -> Self {
+        Self {
+            bridge: RendererBridge::new(backend, config.clone()),
+            config,
+        }
+    }
+
+    /// Update the renderer with a new runtime snapshot
+    /// This is the primary entry point for rendering
+    pub fn update(&mut self, snapshot: &RuntimeSnapshot) -> RenderResult<()> {
+        self.bridge.update(snapshot)
+    }
+
+    /// Force a full scene rebuild
+    pub fn rebuild(&mut self) -> RenderResult<()> {
+        self.bridge.rebuild()
+    }
+
+    /// Get current render statistics
+    pub fn stats(&self) -> RenderStats {
+        self.bridge.stats()
+    }
+
+    /// Shutdown and cleanup resources
+    pub fn shutdown(self) -> RenderResult<()> {
+        self.bridge.shutdown()
+    }
+}
+
+/// Immutable snapshot from runtime
+/// This is what the renderer receives - never modifies
+#[derive(Debug, Clone)]
+pub struct RuntimeSnapshot {
+    pub tick: u64,
+    pub timestamp: f64,
+    pub objects: Vec<ObjectState>,
+    pub focus_ids: Vec<u64>,
+}
+
+/// State of a single object at a point in time
+#[derive(Debug, Clone)]
+pub struct ObjectState {
+    pub id: u64,
+    pub geometry: GeometryType,
+    pub transform: Transform,
+    pub material: MaterialProperties,
+    pub visible: bool,
+    pub highlighted: bool,
+}
+
+/// Geometry type from the semantic layer
+#[derive(Debug, Clone)]
+pub enum GeometryType {
+    Sphere { radius: f64 },
+    Box { width: f64, height: f64, depth: f64 },
+    Cylinder { radius: f64, height: f64 },
+    Cone { radius: f64, height: f64 },
+    Plane { width: f64, height: f64 },
+    Line { points: Vec<[f64; 3]> },
+    Mesh { vertices: Vec<[f64; 3]>, indices: Vec<u32> },
+}
+
+/// Transform in 3D space
+#[derive(Debug, Clone, Copy)]
+pub struct Transform {
+    pub position: [f64; 3],
+    pub rotation: [f64; 4], // Quaternion
+    pub scale: [f64; 3],
+}
+
+impl Default for Transform {
+    fn default() -> Self {
+        Self {
+            position: [0.0, 0.0, 0.0],
+            rotation: [0.0, 0.0, 0.0, 1.0], // Identity quaternion
+            scale: [1.0, 1.0, 1.0],
+        }
+    }
+}
+
+/// Material properties for visual appearance
+#[derive(Debug, Clone)]
+pub struct MaterialProperties {
+    pub color: [f32; 4], // RGBA
+    pub metallic: f32,
+    pub roughness: f32,
+    pub opacity: f32,
+    pub emissive: [f32; 3],
+}
+
+impl Default for MaterialProperties {
+    fn default() -> Self {
+        Self {
+            color: [0.8, 0.8, 0.8, 1.0],
+            metallic: 0.0,
+            roughness: 0.5,
+            opacity: 1.0,
+            emissive: [0.0, 0.0, 0.0],
+        }
+    }
+}
+
+/// Rendering statistics
+#[derive(Debug, Clone, Copy, Default)]
+pub struct RenderStats {
+    pub frame_count: u64,
+    pub objects_rendered: usize,
+    pub objects_culled: usize,
+    pub last_frame_time_ms: f64,
+    pub avg_frame_time_ms: f64,
+}
