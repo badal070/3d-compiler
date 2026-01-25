@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Compiler - Web Renderer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 3D Compiler - DSL Renderer</h1>
+            <p>Compile and render 3D scenes from DSL code</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Panel: DSL Editor -->
+            <div class="panel editor-panel">
+                <div class="panel-header">
+                    <h2>DSL Editor</h2>
+                    <div class="controls">
+                        <select id="exampleSelect">
+                            <option value="cube">Simple Cube</option>
+                            <option value="spinning">Spinning Cube</option>
+                            <option value="multi">Multiple Shapes</option>
+                        </select>
+                        <button id="compileBtn" class="btn btn-primary">▶ Compile & Render</button>
+                    </div>
+                </div>
+                <textarea id="dslEditor" spellcheck="false"></textarea>
+                <div id="errorLog" class="error-log"></div>
+            </div>
+
+            <!-- Right Panel: 3D Viewport -->
+            <div class="panel viewport-panel">
+                <div class="panel-header">
+                    <h2>3D Viewport</h2>
+                    <div class="controls">
+                        <button id="playBtn" class="btn" disabled>⏸ Pause</button>
+                        <button id="resetBtn" class="btn">↻ Reset</button>
+                        <span id="fps" class="fps-counter">FPS: 0</span>
+                    </div>
+                </div>
+                <canvas id="renderCanvas"></canvas>
+                <div class="viewport-info">
+                    <div id="sceneInfo">Objects: 0 | Tick: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span id="status">Ready to compile</span>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
