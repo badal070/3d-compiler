@@ -36,7 +36,7 @@ impl LibraryValidator {
     }
 
     pub fn validate(mut self, ast: &AstFile) -> Result<(), Vec<DslError>> {
-        // Build map of imported libraries
+        // Build map of imported libraries (owned clones so we don't borrow `self`)
         let imported_libraries = self.build_import_map(&ast.library_imports);
 
         // Validate all imports exist
@@ -112,12 +112,12 @@ impl LibraryValidator {
         self.available_libraries.insert(library.name.clone(), library);
     }
 
-    fn build_import_map(&self, imports: &AstLibraryImports) -> HashMap<String, &Library> {
+    fn build_import_map(&self, imports: &AstLibraryImports) -> HashMap<String, Library> {
         let mut map = HashMap::new();
 
         for import in &imports.imports {
             if let Some(library) = self.available_libraries.get(&import.library_name) {
-                map.insert(import.alias.clone(), library);
+                map.insert(import.alias.clone(), library.clone());
             }
         }
 
@@ -151,7 +151,7 @@ impl LibraryValidator {
         entities: &[AstEntity],
         constraints: &[AstConstraint],
         motions: &[AstMotion],
-        imported_libraries: &HashMap<String, &Library>,
+        imported_libraries: &HashMap<String, Library>,
     ) {
         // Collect all available constructs from imported libraries
         let mut available_components = Vec::new();

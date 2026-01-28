@@ -47,6 +47,7 @@ impl Token {
 }
 
 pub struct Lexer {
+    #[allow(dead_code)]
     source: String,
     file: PathBuf,
     chars: Vec<char>,

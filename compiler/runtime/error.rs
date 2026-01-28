@@ -162,6 +162,12 @@ impl fmt::Display for StateError {
 
 impl std::error::Error for RuntimeError {}
 
+impl From<String> for RuntimeError {
+    fn from(s: String) -> Self {
+        RuntimeError::Internal(s)
+    }
+}
+
 /// Classify error recovery strategy
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorRecovery {

@@ -1,0 +1,17 @@
+# compiler/runtime/Cargo.toml
+
+[package]
+name = "runtime"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "mod.rs"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Internal dependencies
+ir = { path = "../ir" }
+dsl-compiler = { path = "../../dsl" }

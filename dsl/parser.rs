@@ -169,7 +169,7 @@ impl Parser {
         let kind = self.expect_identifier()?;
 
         // Expect "components { ... }"
-        self.expect_field_name("components")?;
+        self.expect(TokenKind::Components)?;
         self.expect(TokenKind::LeftBrace)?;
 
         let mut components = Vec::new();
@@ -208,7 +208,19 @@ impl Parser {
 
         while !self.check(TokenKind::RightBrace) {
             let start_span = self.current_span();
-            let name = self.expect_identifier()?;
+            // Accept both identifiers and keywords that can appear as field names
+            let name = match &self.current().kind {
+                TokenKind::Identifier(id) => {
+                    let val = id.clone();
+                    self.advance();
+                    val
+                }
+                TokenKind::Motion => {
+                    self.advance();
+                    "motion".to_string()
+                }
+                _ => self.expect_identifier()?,
+            };
             self.expect(TokenKind::Colon)?;
             let value = self.parse_value()?;
             let end_span = self.previous_span();

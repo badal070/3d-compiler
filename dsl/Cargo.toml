@@ -13,7 +13,12 @@ categories = ["compilers", "parsing", "simulation"]
 name = "dsl_compiler"
 path = "lib.rs"
 
+[[bin]]
+name = "dsl-compiler"
+path = "bin/compiler.rs"
+
 [dependencies]
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 [dev-dependencies]

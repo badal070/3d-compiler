@@ -86,7 +86,7 @@ use std::path::PathBuf;
 
 /// Main compiler interface
 pub struct Compiler {
-    /// Custom configuration options could go here
+    // Custom configuration options could go here
 }
 
 impl Compiler {

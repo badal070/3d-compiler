@@ -3,7 +3,7 @@
 /// Ensures conformance to known component and constraint schemas.
 
 use crate::ast::*;
-use crate::errors::{DslError, ErrorCode, ErrorCollector};
+use crate::errors::{DslError, ErrorCode, ErrorCollector, SourceSpan};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -250,7 +250,7 @@ impl SchemaValidator {
     }
 
     fn validate_component(&mut self, component: &AstComponent, entity_name: &str) {
-        let schema = self.component_schemas.get(&component.name);
+        let schema = self.component_schemas.get(&component.name).cloned();
 
         if schema.is_none() {
             self.errors.add(DslError::new(
@@ -291,7 +291,7 @@ impl SchemaValidator {
                 .find(|f| f.name == field.name);
 
             if let Some(field_schema) = field_schema {
-                self.validate_field_type(&field.value, &field_schema.field_type, &field.name, component.span);
+                    self.validate_field_type(&field.value, field_schema.field_type.clone(), &field.name, component.span);
             }
         }
     }
@@ -305,7 +305,7 @@ impl SchemaValidator {
             }
 
             let constraint_type = constraint_type.unwrap();
-            let schema = self.constraint_schemas.get(constraint_type);
+            let schema = self.constraint_schemas.get(constraint_type).cloned();
 
             if schema.is_none() {
                 let type_field = constraint.get_field("type").unwrap();
@@ -347,7 +347,7 @@ impl SchemaValidator {
                     .find(|f| f.name == field.name);
 
                 if let Some(field_schema) = field_schema {
-                    self.validate_field_type(&field.value, &field_schema.field_type, &field.name, constraint.span);
+                    self.validate_field_type(&field.value, field_schema.field_type.clone(), &field.name, constraint.span);
                 }
             }
         }
@@ -362,7 +362,7 @@ impl SchemaValidator {
             }
 
             let motion_type = motion_type.unwrap();
-            let schema = self.motion_schemas.get(motion_type);
+            let schema = self.motion_schemas.get(motion_type).cloned();
 
             if schema.is_none() {
                 let type_field = motion.get_field("type").unwrap();
@@ -404,7 +404,7 @@ impl SchemaValidator {
                     .find(|f| f.name == field.name);
 
                 if let Some(field_schema) = field_schema {
-                    self.validate_field_type(&field.value, &field_schema.field_type, &field.name, motion.span);
+                    self.validate_field_type(&field.value, field_schema.field_type.clone(), &field.name, motion.span);
                 }
             }
         }
@@ -413,9 +413,9 @@ impl SchemaValidator {
     fn validate_field_type(
         &mut self,
         value: &AstValue,
-        expected_type: &FieldType,
+        expected_type: FieldType,
         field_name: &str,
-        context_span: SourceSpan,
+        _context_span: SourceSpan,
     ) {
         let actual_type = match value {
             AstValue::Number(_, _) => FieldType::Number,
@@ -437,7 +437,7 @@ impl SchemaValidator {
             }
         };
 
-        if &actual_type != expected_type {
+        if actual_type != expected_type {
             self.errors.add(
                 DslError::new(
                     ErrorCode::InvalidFieldType,
@@ -453,7 +453,7 @@ impl SchemaValidator {
         }
 
         // Additional validations
-        if expected_type == &FieldType::Number {
+        if expected_type == FieldType::Number {
             if let AstValue::Number(n, span) = value {
                 if !n.is_finite() {
                     self.errors.add(DslError::new(

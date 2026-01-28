@@ -5,12 +5,13 @@
 
 use crate::ast::*;
 use crate::errors::{DslError, DslResult, ErrorCode};
+use serde::Serialize;
 use std::collections::HashMap;
 
 /// Intermediate Representation - this would typically be defined in a separate IR module
 /// For now, we define a minimal IR structure to demonstrate the lowering process
 
-#[derive(Debug, Clone)]
+#[derive(Serialize)]
 pub struct IrScene {
     pub metadata: IrMetadata,
     pub entities: Vec<IrEntity>,
@@ -19,7 +20,7 @@ pub struct IrScene {
     pub timelines: Vec<IrTimeline>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct IrMetadata {
     pub name: String,
     pub version: i64,
@@ -28,20 +29,20 @@ pub struct IrMetadata {
     pub libraries: Vec<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct IrEntity {
     pub id: String,
     pub kind: String,
     pub components: HashMap<String, IrComponent>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct IrComponent {
     pub component_type: String,
     pub properties: HashMap<String, IrValue>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum IrValue {
     Number(f64),
     String(String),
@@ -50,14 +51,14 @@ pub enum IrValue {
     Boolean(bool),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct IrConstraint {
     pub id: String,
     pub constraint_type: String,
     pub parameters: HashMap<String, IrValue>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct IrMotion {
     pub id: String,
     pub motion_type: String,
@@ -65,13 +66,13 @@ pub struct IrMotion {
     pub parameters: HashMap<String, IrValue>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct IrTimeline {
     pub id: String,
     pub events: Vec<IrEvent>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct IrEvent {
     pub motion_id: String,
     pub start_time: f64,

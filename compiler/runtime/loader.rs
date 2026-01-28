@@ -1,12 +1,11 @@
 // compiler/runtime/loader.rs
 /// Loads IR into executable runtime state
-use crate::ir::{IrScene, IrEntity, IrValue, IrComponent, IrMotion, IrTimeline};
+use dsl_compiler::lower_to_ir::{IrScene, IrEntity, IrValue, IrComponent};
 use crate::state::{
     RuntimeState, WorldState, ObjectState, ObjectKind, 
     Vector3, Quaternion, TimeState, ParameterState, Parameter
 };
-use crate::error::{RuntimeError, RuntimeResult};
-use std::collections::HashMap;
+use crate::error::RuntimeResult;
 
 pub struct SceneLoader;
 

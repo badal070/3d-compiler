@@ -3,7 +3,7 @@
 /// Detects undefined references and circular dependencies.
 
 use crate::ast::*;
-use crate::errors::{DslError, ErrorCode, ErrorCollector};
+use crate::errors::{DslError, ErrorCode, ErrorCollector, SourceSpan};
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
@@ -22,8 +22,8 @@ impl ReferenceValidator {
 
     pub fn validate(mut self, ast: &AstFile) -> Result<(), Vec<DslError>> {
         // Build symbol tables
-        let entities = self.build_entity_table(&ast.entities);
-        let motions = self.build_motion_table(&ast.motions);
+        let entities = Self::build_entity_table(&ast.entities);
+        let motions = Self::build_motion_table(&ast.motions);
 
         // Validate constraint references
         self.validate_constraint_references(&ast.constraints, &entities);
@@ -40,14 +40,14 @@ impl ReferenceValidator {
         self.errors.into_result(())
     }
 
-    fn build_entity_table(&self, entities: &[AstEntity]) -> HashMap<String, &AstEntity> {
+    fn build_entity_table<'a>(entities: &'a [AstEntity]) -> HashMap<String, &'a AstEntity> {
         entities
             .iter()
             .map(|e| (e.name.clone(), e))
             .collect()
     }
 
-    fn build_motion_table(&self, motions: &[AstMotion]) -> HashMap<String, &AstMotion> {
+    fn build_motion_table<'a>(motions: &'a [AstMotion]) -> HashMap<String, &'a AstMotion> {
         motions
             .iter()
             .map(|m| (m.name.clone(), m))
@@ -147,7 +147,7 @@ impl ReferenceValidator {
             for (motion_name, events) in motion_events {
                 for i in 0..events.len() {
                     for j in (i + 1)..events.len() {
-                        let (start1, end1, span1) = events[i];
+                        let (start1, end1, _span1) = events[i];
                         let (start2, end2, span2) = events[j];
 
                         // Check for overlap: [start1, end1) overlaps [start2, end2)
@@ -216,7 +216,7 @@ impl ReferenceValidator {
                             c.get_field("driver")
                                 .or_else(|| c.get_field("parent"))
                                 .and_then(|f| f.value.as_identifier())
-                                .map(|d| cycle.contains(&d))
+                                .map(|d| cycle.iter().any(|s| s.as_str() == d))
                                 .unwrap_or(false)
                         });
 
